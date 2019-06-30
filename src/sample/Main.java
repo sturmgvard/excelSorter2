@@ -1,16 +1,12 @@
 package sample;
 
-import com.sun.prism.paint.Paint;
 import javafx.application.Application;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -19,18 +15,18 @@ import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.XSSFName;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import sun.plugin2.util.ColorUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Main extends Application {
-    private static ArrayList<Workbook> wbList = new ArrayList<>();
+    private static HashMap<Workbook, String> wbMap = new HashMap<>();
     private static ArrayList<Row> rowsList = new ArrayList<>();
     static Button buttonAddFile;
     static StringBuilder sbAddedFiles = new StringBuilder("Добавленные файлы:\n");
@@ -40,26 +36,26 @@ public class Main extends Application {
     static TextField inputText;
     static Button btnStartSearch;
     static GridPane gridPaneOutput;
+
     static {
         inputText = new TextField();
         inputText.setPrefColumnCount(10);
-
 
         gridPaneOutput = new GridPane();
 //        gridPaneOutput.setGridLinesVisible(true);
         gridPaneOutput.setHgap(20);
         gridPaneOutput.setVgap(20);
 
+
     }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         FileChooser fileChooser = new FileChooser();
-//        GridPane gridPaneOutput = new GridPane();
-
-
         BorderPane root = new BorderPane();
-
         ScrollPane scrollPane = new ScrollPane();
+
+
         scrollPane.setContent(root);
 
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
@@ -93,8 +89,7 @@ public class Main extends Application {
                     Workbook wb = new XSSFWorkbook(fis);
 
 
-
-                    wbList.add(wb);
+                    wbMap.put(wb, selectedFile.getName());
                     sbAddedFiles.append("\n" + selectedFile.getName());
                     txtAddedFiles.setText(sbAddedFiles.toString());
                 } catch (IOException exc) {
@@ -119,21 +114,19 @@ public class Main extends Application {
                             if (cell != null) {
                                 if (cell.getCellType() != CellType.BLANK) {
                                     if (cell.getCellType() == CellType.NUMERIC) {
-                                        Text t = new Text("цена: "+cell.toString());
+                                        Text t = new Text("цена: " + cell.toString());
                                         t.setFont(new Font(18));
                                         t.setFill(Color.RED);
 
-                                        gridPaneOutput.add(t,columnIndex++,rowIndex);//todo add format string
-
-
+                                        gridPaneOutput.add(t, columnIndex++, rowIndex);//todo add format string
 
                                     } else {
                                         Text t = new Text();
                                         t.setText(cell.toString());
                                         t.setFont(new Font(18));
-                                        t.setStyle("bold");
+//                                        t.setStyle();
 
-                                        gridPaneOutput.add(t,columnIndex++,rowIndex);//todo add format string
+                                        gridPaneOutput.add(t, columnIndex++, rowIndex);//todo add format string
 
                                     }
                                 }
@@ -141,7 +134,7 @@ public class Main extends Application {
 
                             }
                         }
-                        gridPaneOutput.add(new Text(" номер строки = " + (row.getRowNum()+1) ),columnIndex,rowIndex);
+                        gridPaneOutput.add(new Text(" номер строки = " + (row.getRowNum() + 1)), columnIndex, rowIndex);
                         columnIndex = 0;
                         ++rowIndex;
 
@@ -154,7 +147,7 @@ public class Main extends Application {
 
 
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(scrollPane, 1700, 475));
+        primaryStage.setScene(new Scene(scrollPane, 1700, 477));
         primaryStage.show();
     }
 
@@ -163,16 +156,41 @@ public class Main extends Application {
         launch(args);
     }
 
+    //    public static void fillRowsList(String search) {
+//        if (!wbMap.isEmpty()) {
+//            for (Workbook workbook : wbMap.keySet()) {
+//                for (Sheet sheet : workbook) {
+//                    for (Row row : sheet) {
+//                        for (Cell cell : row) {
+//                            if (cell != null) {
+//                                if (cell.getCellType() == CellType.STRING) {
+//                                    if (cell.toString().toLowerCase().contains(search.toLowerCase())) {
+//
+//                                        rowsList.add(row);
+//
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
     public static void fillRowsList(String search) {
-        if (!wbList.isEmpty()) {
-            for (Workbook workbook : wbList) {
-                for (Sheet sheet : workbook) {
+        if (!wbMap.isEmpty()) {
+            for (Map.Entry<Workbook, String> entry : wbMap.entrySet()) {
+                for (Sheet sheet : entry.getKey()) {
                     for (Row row : sheet) {
                         for (Cell cell : row) {
                             if (cell != null) {
                                 if (cell.getCellType() == CellType.STRING) {
                                     if (cell.toString().toLowerCase().contains(search.toLowerCase())) {
+//                                        String s = cell.getStringCellValue().toUpperCase() + " имя файла: "+ entry.getValue() + " номер строки: " + (row.getRowNum()+1);
+//                                        cell.setCellValue(s);
                                         rowsList.add(row);
+                                        //                                        rowsList.add(row);
+
                                     }
                                 }
                             }
@@ -182,4 +200,12 @@ public class Main extends Application {
             }
         }
     }
+
+
+//echo "# excelSorter2" >> README.md
+//        git init
+//        git add README.md
+//        git commit -m "first commit"
+//        git remote add origin https://github.com/sturmgvard/excelSorter2.git
+//        git push -u origin master
 }
