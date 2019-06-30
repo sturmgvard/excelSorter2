@@ -20,14 +20,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class Main extends Application {
     private static HashMap<Workbook, String> wbMap = new HashMap<>();
-    private static ArrayList<Row> rowsList = new ArrayList<>();
+    private static HashMap<Row, String> rowsMap = new HashMap<>();
     static Button buttonAddFile;
     static StringBuilder sbAddedFiles = new StringBuilder("Добавленные файлы:\n");
 
@@ -62,7 +60,7 @@ public class Main extends Application {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         VBox leftVBox = new VBox();
-        leftVBox.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE,
+        leftVBox.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE,//Color.valueOf("#00C6D5")
                 BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(3))));
         root.setLeft(leftVBox);
         leftVBox.setSpacing(20);
@@ -109,8 +107,9 @@ public class Main extends Application {
                 if (inputText != null) {
                     fillRowsList(inputText.getText());
 
-                    for (Row row : rowsList) {
-                        for (Cell cell : row) {
+
+                    for (Map.Entry<Row, String> entry : rowsMap.entrySet()) {
+                        for (Cell cell : entry.getKey()) {
                             if (cell != null) {
                                 if (cell.getCellType() != CellType.BLANK) {
                                     if (cell.getCellType() == CellType.NUMERIC) {
@@ -124,7 +123,6 @@ public class Main extends Application {
                                         Text t = new Text();
                                         t.setText(cell.toString());
                                         t.setFont(new Font(18));
-//                                        t.setStyle();
 
                                         gridPaneOutput.add(t, columnIndex++, rowIndex);//todo add format string
 
@@ -134,7 +132,10 @@ public class Main extends Application {
 
                             }
                         }
-                        gridPaneOutput.add(new Text(" номер строки = " + (row.getRowNum() + 1)), columnIndex, rowIndex);
+                        Text t = new Text();
+                        t.setText(entry.getValue() + " , номер строки = " + (entry.getKey().getRowNum() + 1));
+                        t.setFill(Color.BLUE);
+                        gridPaneOutput.add(t, columnIndex, rowIndex);
                         columnIndex = 0;
                         ++rowIndex;
 
@@ -146,7 +147,7 @@ public class Main extends Application {
         rightVBox.getChildren().addAll(inputText, btnStartSearch, gridPaneOutput);
 
 
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("Эксель поиск (@sedof)");
         primaryStage.setScene(new Scene(scrollPane, 1700, 477));
         primaryStage.show();
     }
@@ -156,27 +157,7 @@ public class Main extends Application {
         launch(args);
     }
 
-    //    public static void fillRowsList(String search) {
-//        if (!wbMap.isEmpty()) {
-//            for (Workbook workbook : wbMap.keySet()) {
-//                for (Sheet sheet : workbook) {
-//                    for (Row row : sheet) {
-//                        for (Cell cell : row) {
-//                            if (cell != null) {
-//                                if (cell.getCellType() == CellType.STRING) {
-//                                    if (cell.toString().toLowerCase().contains(search.toLowerCase())) {
-//
-//                                        rowsList.add(row);
-//
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+
     public static void fillRowsList(String search) {
         if (!wbMap.isEmpty()) {
             for (Map.Entry<Workbook, String> entry : wbMap.entrySet()) {
@@ -188,8 +169,7 @@ public class Main extends Application {
                                     if (cell.toString().toLowerCase().contains(search.toLowerCase())) {
 //                                        String s = cell.getStringCellValue().toUpperCase() + " имя файла: "+ entry.getValue() + " номер строки: " + (row.getRowNum()+1);
 //                                        cell.setCellValue(s);
-                                        rowsList.add(row);
-                                        //                                        rowsList.add(row);
+                                        rowsMap.put(row, entry.getValue());
 
                                     }
                                 }
